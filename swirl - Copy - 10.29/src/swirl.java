@@ -39,11 +39,13 @@ public class swirl extends PApplet {
 
 	pt[] control_point_A = new pt[4];
 	pt[] control_point_B = new pt[4];
-	pt[] sample_A = new pt[1000];
-	pt[] sample_B = new pt[1000];
+	pt[] sample_A = new pt[1001];
+	pt[] sample_B = new pt[1001];
 	pt[] medial_axis = new pt[100];
 	pt[] ABintersect = new pt[100];
 	vec orientation;
+	vec[] normal_A=new vec[1000];
+	vec[] normal_B=new vec[1000];
 
 	public void setup() {
 		myFace = loadImage("data/pic.jpg"); // load image from file pic.jpg in
@@ -57,7 +59,7 @@ public class swirl extends PApplet {
 		// P.resetOnCircle(12,100); // used to get started if no model exists on
 		// file
 		P.loadPts("data/A.pts"); // loads saved model from file
-		Q.loadPts("data/B.pts"); // loads saved model from file
+		//Q.loadPts("data/B.pts"); // loads saved model from file
 
 		control_point_A[0] = P.G[0];
 		control_point_A[3] = P.G[3];
@@ -66,8 +68,8 @@ public class swirl extends PApplet {
 
 		control_point_B[0] = P.G[0];
 		control_point_B[3] = P.G[3];
-		control_point_B[1] = Q.G[0];
-		control_point_B[2] = Q.G[1];
+		control_point_B[1] = P.G[4];
+		control_point_B[2] = P.G[5];
 
 		calculate_sample();
 
@@ -81,6 +83,8 @@ public class swirl extends PApplet {
 		medial_axis[99] = control_point_A[3];
 
 		compute_medial_axis();
+		find_normal();
+		
 	}
 
 	public void draw() {
@@ -147,6 +151,11 @@ public class swirl extends PApplet {
 		for (int i = 0; i < 100; i++) {
 			showSphere(ABintersect[i], 7);
 		}
+		
+		stroke(255, 255, 0);
+		noFill();
+		draw_tube( sample_A, normal_A,7,10);
+		draw_tube( sample_B, normal_B,7,10);
 		
 		
 		// show(bezierPoint(control_point_A, 0),
@@ -233,7 +242,7 @@ public class swirl extends PApplet {
 
 	public void calculate_sample() {
 
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i <= 1000; i++) {
 			sample_A[i] = bezierPoint(control_point_A, ((float) i) / 1000);
 			sample_B[i] = bezierPoint(control_point_B, ((float) i) / 1000);
 		}
@@ -246,7 +255,7 @@ public class swirl extends PApplet {
 
 			// println("i = " + i);
 			float min_temp = Integer.MAX_VALUE, min_final = Integer.MAX_VALUE;
-			for (int i_1 = 0; i_1 < 1000; i_1++) {
+			for (int i_1 = 0; i_1 <=1000; i_1++) {
 
 				// println("i_1 = " + i_1);
 				min_temp = d(sample_A[i], sample_B[i_1]);
@@ -258,11 +267,67 @@ public class swirl extends PApplet {
 			}
 		}
 	}
+	
+	public void find_normal()
+	{
+		float parameter;
+		
+		vec temp1=U(bezierTangent(control_point_B, 0));//tangent
+		vec X1=new vec(1,0,0);//find a random vector to form a plane
+		if( abs(dot(X1,temp1))>0.9 )//check parallel
+			X1=V(0,1,0);
+		vec J1=U( N(X1,temp1) );//get normal vector to tangent
+		normal_B[0]=J1;
+		
+		
+		vec temp=U(bezierTangent(control_point_A, 0));//tangent
+		vec X=new vec(1,0,0);//find a random vector to form a plane
+		if( abs(dot(X,temp))>0.9 )//check parallel
+			X=V(0,1,0);
+		vec J=U( N(X,temp) );//get normal vector to tangent
+		normal_A[0]=J;
+
+		
+		for (int i = 1; i < 1000; i++) {
+			vec AC=U(V( sample_A[i-1] , sample_A[i+1] ));//U
+			parameter=dot(normal_A[i-1],AC)/dot(AC,AC);//x=(Na.U)/(U.U)
+			normal_A[i]=U(   M(normal_A[i-1], V(parameter,AC) )  );//Nb=Na-xU
+			
+			AC=U(V( sample_B[i-1] , sample_B[i+1] ));//U
+			parameter=dot(normal_B[i-1],AC)/dot(AC,AC);//x=(Na.U)/(U.U)
+			normal_B[i]=U(   M(normal_B[i-1], V(parameter,AC) )  );//Nb=Na-xU
+		}
+
+	}
+	public void draw_tube(pt[] sample,vec[] normal_sample,int r,int s)
+	{
+		
+		for(int i=0;i<1000;i++)
+		{
+			if(i%100<=50)
+				stroke(0, 255, 255);
+			else
+				stroke(255,255,0);
+
+			vec I=U(V(sample[i],sample[i+1]));
+			vec J=normal_sample[i];
+			vec K=U(N(I,J));
+			beginShape(QUAD_STRIP);
+			for (float t=0; t<TWO_PI; t+=TWO_PI/s) 
+			{
+				
+				v(P(P(sample[i],r*cos(t),J),r*sin(t),K)); v(P(P(sample[i+1],r*cos(t),J),r*sin(t),K));
+			}
+			endShape();
+			
+		}
+	}
+	
 
 	public int find_closest_projection(pt p, pt[] sample) {
 		float distance = d(sample[0], p), temp;
 		int index = 0;
-		for (int i = 1; i < 1000; i++) {
+		for (int i = 1; i <=1000; i++) {
 			temp = d(sample[i], p);
 			if (temp < distance) {
 				distance = temp;
@@ -459,10 +524,11 @@ public class swirl extends PApplet {
 
 		control_point_B[0] = P.G[0];
 		control_point_B[3] = P.G[3];
-		control_point_B[1] = Q.G[0];
-		control_point_B[2] = Q.G[1];
+		control_point_B[1] = P.G[4];
+		control_point_B[2] = P.G[5];
 		calculate_sample();
 		compute_medial_axis();
+		find_normal();
 		if (keyPressed && key == 'X')
 			P.moveAll(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
 		if (keyPressed && key == 'Z')
@@ -1400,6 +1466,7 @@ public class swirl extends PApplet {
 	public void showSphere(pt P, float r) {
 		pushMatrix();
 		translate(P.x, P.y, P.z);
+		sphereDetail(5);
 		sphere(r);
 		popMatrix();
 	}
