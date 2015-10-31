@@ -151,11 +151,10 @@ public class swirl extends PApplet {
 		for (int i = 0; i < 100; i++) {
 			showSphere(ABintersect[i], 7);
 		}
+
 		
-		stroke(255, 255, 0);
-		noFill();
-		draw_tube( sample_A, normal_A,7,10);
-		draw_tube( sample_B, normal_B,7,10);
+		draw_quad( sample_A, normal_A,8,8);
+		draw_quad( sample_B, normal_B,8,8);
 		
 		
 		// show(bezierPoint(control_point_A, 0),
@@ -322,6 +321,49 @@ public class swirl extends PApplet {
 			
 		}
 	}
+	
+	
+	public void draw_quad(pt[] sample,vec[] normal_sample,int r,int s)
+	{
+		int j=0;
+		for(int i=0;i<1000;i+=1)
+		{
+			
+			vec I=U(V(sample[i],sample[i+1]));
+			vec J=normal_sample[i];
+			vec K=U(N(I,J));
+			
+			for (float t=0; t<TWO_PI; t+=TWO_PI/s,j++) 
+			{
+				if(j%2==0)
+					stroke(25, 255, 255);
+				else
+					stroke(0,0,0);
+				beginShape(QUAD);
+				v(P(P(sample[i],r*cos(t),J),r*sin(t),K)); 
+				v(P(P(sample[i+1],r*cos(t),J),r*sin(t),K));
+				
+				v(P(P(sample[i],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
+				v(P(P(sample[i+1],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
+
+				endShape();
+			}
+			if(i%80!=40)
+				j++;
+				
+			
+		}
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 
 	public int find_closest_projection(pt p, pt[] sample) {
