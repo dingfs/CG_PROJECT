@@ -33,7 +33,7 @@ public class swirl extends PApplet {
 							// mouse
 	Boolean twistFree = false, animating = false, tracking = false, center = true, gouraud = true,
 			showControlPolygon = false, showNormals = false;
-	float t = 0.2f, s = 0;
+	float t = 0f, s = 0;
 	boolean viewpoint = false;
 	pt Viewer = P();
 	pt F = P(50, -100, -100); // focus point: the camera is looking at it (moved when
@@ -182,20 +182,22 @@ public class swirl extends PApplet {
 		draw_quad( sample_B, normal_B,2,8,1000,2);
 		draw_net();
 	
-		//for(int i=1;i<100;i++)
-		//{
-		//	intermediate[i]=L(sample_A[corres[i].a],t,sample_B[corres[i].b]);	
-		//}		
+		for(int i=1;i<100;i++)
+		{
+			intermediate[i]=L(sample_A[corres[i].a],t,sample_B[corres[i].b]);
+			//stroke(255, 0, 255);
+			//showSphere(intermediate[i],4);
+		}		
 		
-		//if(animating) 
-		//{
-			//find_normal(intermediate,normal_intermediate,100);
-			//draw_quad( intermediate, normal_intermediate,4,8,100,3);
+		if(animating) 
+		{
+			find_normal(intermediate,normal_intermediate,100);
+			draw_quad( intermediate, normal_intermediate,4,8,100,3);
 			
-			//t+=0.02f;
-			//if(t>1)
-			//	t=0;
-		//}
+			t+=0.02f;
+			if(t>1)
+				t=0;
+		}
 
 		pp = P.idOfVertexWithClosestScreenProjectionTo(Mouse()); 
 		
@@ -382,6 +384,65 @@ public class swirl extends PApplet {
 			endShape();
 		}
 	}
+	
+	/*
+	public void draw_medial_tube()
+	{
+		
+		
+		
+		
+		
+		for(int i=0;i<100;i++)
+		{
+			float radius_1=d( sample_A[corres[i].a],sample_B[corres[i].b]    )/2;
+			pt center_1=P(sample_A[corres[i].a],sample_B[corres[i].b]);
+			
+			float radius_2=d( sample_A[corres[i+1].a],sample_B[corres[i+1].b]    )/2;
+			pt center_2=P(sample_A[corres[i+1].a],sample_B[corres[i+1].b]);
+			
+			
+			vec I=U(V(sample[i],sample[i+1]));
+			vec J=normal_sample[i];
+			vec K=U(N(I,J));
+			
+			for (float t=0; t<TWO_PI; t+=TWO_PI/s,j++) 
+			{
+				if(j%2==0)
+				{
+					if(color==1)
+						stroke(255, 0, 0);
+					else if(color==2)
+						stroke(0, 0, 255);
+					else
+						stroke(0, 255, 0);
+				}
+				else
+					stroke(0,0,0);
+				beginShape(QUAD);
+				v(P(P(sample[i],r*cos(t),J),r*sin(t),K)); 
+				v(P(P(sample[i+1],r*cos(t),J),r*sin(t),K));
+				
+				v(P(P(sample[i],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
+				v(P(P(sample[i+1],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
+
+				endShape();
+			}
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		}
+	}
+	
+	*/
 	
 	
 	
