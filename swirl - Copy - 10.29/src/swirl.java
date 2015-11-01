@@ -18,6 +18,13 @@ import java.io.IOException;
 
 public class swirl extends PApplet {
 
+	class correspondence
+	{
+		public int a;
+		public int b;
+		public correspondence(int x,int y){a=x;b=y;}		
+	};
+	
 	// Skate dancer on moving terrain
 	float dz = 0; // distance to camera. Manipulated with wheel or when
 	// float rx=-0.06*TWO_PI, ry=-0.04*TWO_PI; // view angles manipulated when
@@ -42,6 +49,8 @@ public class swirl extends PApplet {
 	pt[] sample_A = new pt[1001];
 	pt[] sample_B = new pt[1001];
 	pt[] medial_axis = new pt[100];
+	correspondence[] corres =new correspondence[100];
+	
 	pt[] ABintersect = new pt[100];
 	vec orientation;
 	vec[] normal_A=new vec[1000];
@@ -84,6 +93,8 @@ public class swirl extends PApplet {
 
 		compute_medial_axis();
 		find_normal();
+		
+		corres[0]=new correspondence(0,0);
 		
 	}
 
@@ -314,7 +325,6 @@ public class swirl extends PApplet {
 			beginShape(QUAD_STRIP);
 			for (float t=0; t<TWO_PI; t+=TWO_PI/s) 
 			{
-				
 				v(P(P(sample[i],r*cos(t),J),r*sin(t),K)); v(P(P(sample[i+1],r*cos(t),J),r*sin(t),K));
 			}
 			endShape();
@@ -350,21 +360,10 @@ public class swirl extends PApplet {
 			}
 			if(i%80!=40)
 				j++;
-				
-			
 		}
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 
 	public int find_closest_projection(pt p, pt[] sample) {
 		float distance = d(sample[0], p), temp;
@@ -390,7 +389,7 @@ public class swirl extends PApplet {
 
 		for (int i = 1; i < 99; i++) {
 			medial_axis[i] = P(medial_axis[i - 1], 7, orientation);
-
+			
 			for (int ii = 0; ii < 3; ii++) {
 				int temp_A = find_closest_projection(medial_axis[i], sample_A);
 				int temp_B = find_closest_projection(medial_axis[i], sample_B);
@@ -435,9 +434,14 @@ public class swirl extends PApplet {
 
 				medial_axis[i] = P(ABintersect[i],
 						V(dot(V(ABintersect[i], medial_axis[i]), new_guessLine), new_guessLine));
+				
+				
+				corres[i]=new correspondence(temp_A,temp_B);
 
 			}
-
+			
+			
+			
 			// just media axis, not enough
 			// medial_axis[i] = P(sample_A[temp_A], sample_B[temp_B]);
 
