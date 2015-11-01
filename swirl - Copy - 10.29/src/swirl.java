@@ -33,7 +33,7 @@ public class swirl extends PApplet {
 							// mouse
 	Boolean twistFree = false, animating = false, tracking = false, center = true, gouraud = true,
 			showControlPolygon = false, showNormals = false;
-	float t = 0, s = 0;
+	float t = 0.2f, s = 0;
 	boolean viewpoint = false;
 	pt Viewer = P();
 	pt F = P(50, -100, -100); // focus point: the camera is looking at it (moved when
@@ -48,13 +48,17 @@ public class swirl extends PApplet {
 	pt[] control_point_B = new pt[4];
 	pt[] sample_A = new pt[1001];
 	pt[] sample_B = new pt[1001];
-	pt[] medial_axis = new pt[100];
-	correspondence[] corres =new correspondence[100];
 	
-	pt[] ABintersect = new pt[100];
+	pt[] medial_axis = new pt[101];
+	correspondence[] corres =new correspondence[101];
+	pt[] intermediate=new pt[101];
+	
+	pt[] ABintersect = new pt[101];
 	vec orientation;
+	
 	vec[] normal_A=new vec[1000];
 	vec[] normal_B=new vec[1000];
+	vec[] normal_intermediate=new vec[100];
 
 	public void setup() {
 		myFace = loadImage("data/pic.jpg"); // load image from file pic.jpg in
@@ -84,17 +88,25 @@ public class swirl extends PApplet {
 
 		// test ABintersect
 		ABintersect[0] = control_point_A[0];
-		ABintersect[99] = control_point_A[3];
+		ABintersect[100] = control_point_A[3];
 
 		medial_axis[0] = control_point_A[0];
-		// orientation = U(A(U(bezierTangent(control_point_A, 0)),
-		// U(bezierTangent(control_point_B, 0))));
-		medial_axis[99] = control_point_A[3];
-
-		compute_medial_axis();
-		find_normal();
+		medial_axis[100] = control_point_A[3];
+		
+		
+		intermediate[0] = control_point_A[0];
+		intermediate[100] = control_point_A[3];
 		
 		corres[0]=new correspondence(0,0);
+		corres[100]=new correspondence(1000,1000);
+
+		compute_medial_axis();
+		find_normal(sample_A,normal_A,1000);
+		find_normal(sample_B,normal_B,1000);
+		
+		
+		
+	
 		
 	}
 
@@ -154,42 +166,39 @@ public class swirl extends PApplet {
 
 		stroke(255, 0, 0);
 		strokeWeight(5);
-		for (int i = 0; i < 100; i++) {
-			showSphere(medial_axis[i], 5);
-		}		
+		for (int i = 0; i < 101; i++) {
+			showSphere(medial_axis[i], 4);
+		}	
+		
+		/*
 		stroke(255, 0, 255);
 		strokeWeight(5);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1001; i++) {
 			showSphere(ABintersect[i], 7);
 		}
-
+*/
 		
-		draw_quad( sample_A, normal_A,8,8);
-		draw_quad( sample_B, normal_B,8,8);
+		draw_quad( sample_A, normal_A,2,8,1000,1);
+		draw_quad( sample_B, normal_B,2,8,1000,2);
+		draw_net();
+	
+		//for(int i=1;i<100;i++)
+		//{
+		//	intermediate[i]=L(sample_A[corres[i].a],t,sample_B[corres[i].b]);	
+		//}		
 		
+		//if(animating) 
+		//{
+			//find_normal(intermediate,normal_intermediate,100);
+			//draw_quad( intermediate, normal_intermediate,4,8,100,3);
+			
+			//t+=0.02f;
+			//if(t>1)
+			//	t=0;
+		//}
+
+		pp = P.idOfVertexWithClosestScreenProjectionTo(Mouse()); 
 		
-		// show(bezierPoint(control_point_A, 0),
-		// V(100,U(bezierTangent(control_point_A,0))));
-		// show(bezierPoint(control_point_B, 0),
-		// V(100,U(bezierTangent(control_point_B,0))));
-
-		pp = P.idOfVertexWithClosestScreenProjectionTo(Mouse()); // id of vertex
-																	// of P with
-																	// closest
-																	// screen
-																	// projection
-																	// to mouse
-																	// (us in
-																	// keyPressed
-																	// 'x'...
-
-		/*
-		 * if(viewpoint) { Viewer = viewPoint(); viewpoint=false; } noFill();
-		 * stroke(red); show(Viewer,P(200,200,0)); show(Viewer,P(200,-200,0));
-		 * show(Viewer,P(-200,200,0)); show(Viewer,P(-200,-200,0)); noStroke();
-		 * fill(red,100); show(Viewer,5); noFill();
-		 */
-
 		if (mousePressed && !keyPressed) {
 			Of = pick(mouseX, mouseY);
 			for (int i = 0; i < 10; i++)
@@ -231,12 +240,12 @@ public class swirl extends PApplet {
 		} // dispalys header on canvas, including my face
 		if (scribeText && !filming)
 			displayFooter(); // shows menu at bottom, only if not filming
-		if (animating) {
-			t += PI / 180 / 2;
-			if (t >= TWO_PI)
-				t = 0;
-			s = (cos(t) + 1.f) / 2;
-		} // periodic change of time
+		//if (animating) {
+		//	t += PI / 180 / 2;
+		//	if (t >= TWO_PI)
+		//		t = 0;
+		//	s = (cos(t) + 1.f) / 2;
+		//} // periodic change of time
 		if (filming && (animating || change))
 			saveFrame("FRAMES/F" + nf(frameCounter++, 4) + ".tif"); // save next
 																	// frame to
@@ -258,7 +267,7 @@ public class swirl extends PApplet {
 		}
 
 	}
-
+/*
 	public void calculate_MA() {
 
 		for (int i = 0; i < 100; i++) {
@@ -277,42 +286,31 @@ public class swirl extends PApplet {
 			}
 		}
 	}
-	
-	public void find_normal()
+	*/
+	public void find_normal(pt[] sample,vec[] sample_normal,int size)
 	{
 		float parameter;
-		
-		vec temp1=U(bezierTangent(control_point_B, 0));//tangent
+		vec temp1=U(V(sample[0],sample[1]));//tangent
 		vec X1=new vec(1,0,0);//find a random vector to form a plane
 		if( abs(dot(X1,temp1))>0.9 )//check parallel
 			X1=V(0,1,0);
 		vec J1=U( N(X1,temp1) );//get normal vector to tangent
-		normal_B[0]=J1;
-		
-		
-		vec temp=U(bezierTangent(control_point_A, 0));//tangent
-		vec X=new vec(1,0,0);//find a random vector to form a plane
-		if( abs(dot(X,temp))>0.9 )//check parallel
-			X=V(0,1,0);
-		vec J=U( N(X,temp) );//get normal vector to tangent
-		normal_A[0]=J;
-
-		
-		for (int i = 1; i < 1000; i++) {
-			vec AC=U(V( sample_A[i-1] , sample_A[i+1] ));//U
-			parameter=dot(normal_A[i-1],AC)/dot(AC,AC);//x=(Na.U)/(U.U)
-			normal_A[i]=U(   M(normal_A[i-1], V(parameter,AC) )  );//Nb=Na-xU
-			
-			AC=U(V( sample_B[i-1] , sample_B[i+1] ));//U
-			parameter=dot(normal_B[i-1],AC)/dot(AC,AC);//x=(Na.U)/(U.U)
-			normal_B[i]=U(   M(normal_B[i-1], V(parameter,AC) )  );//Nb=Na-xU
+		sample_normal[0]=J1;
+	
+		for (int i = 1; i < size; i++) {
+			vec AC=U(V( sample[i-1] , sample[i+1] ));//U
+			parameter=dot(sample_normal[i-1],AC)/dot(AC,AC);//x=(Na.U)/(U.U)
+			sample_normal[i]=U(   M(sample_normal[i-1], V(parameter,AC) )  );//Nb=Na-xU
 		}
 
 	}
-	public void draw_tube(pt[] sample,vec[] normal_sample,int r,int s)
+
+	
+	
+	public void draw_tube(pt[] sample,vec[] normal_sample,int r,int s,int size)
 	{
 		
-		for(int i=0;i<1000;i++)
+		for(int i=0;i<size;i++)
 		{
 			if(i%100<=50)
 				stroke(0, 255, 255);
@@ -333,10 +331,10 @@ public class swirl extends PApplet {
 	}
 	
 	
-	public void draw_quad(pt[] sample,vec[] normal_sample,int r,int s)
+	public void draw_quad(pt[] sample,vec[] normal_sample,int r,int s,int size,int color)
 	{
 		int j=0;
-		for(int i=0;i<1000;i+=1)
+		for(int i=0;i<size;i+=1)
 		{
 			
 			vec I=U(V(sample[i],sample[i+1]));
@@ -346,7 +344,14 @@ public class swirl extends PApplet {
 			for (float t=0; t<TWO_PI; t+=TWO_PI/s,j++) 
 			{
 				if(j%2==0)
-					stroke(25, 255, 255);
+				{
+					if(color==1)
+						stroke(255, 0, 0);
+					else if(color==2)
+						stroke(0, 0, 255);
+					else
+						stroke(0, 255, 0);
+				}
 				else
 					stroke(0,0,0);
 				beginShape(QUAD);
@@ -358,12 +363,28 @@ public class swirl extends PApplet {
 
 				endShape();
 			}
-			if(i%80!=40)
+			if(i%20!=10)
 				j++;
 		}
 	}
 
 
+	public void draw_net()
+	{
+		for(int i=0;i<101;i++)
+		{
+			noFill();
+			strokeWeight(4);
+			stroke(255,255,0);
+			beginShape();
+			vertex(sample_A[corres[i].a].x,sample_A[corres[i].a].y,sample_A[corres[i].a].z );
+			quadraticVertex(medial_axis[i].x,medial_axis[i].y,medial_axis[i].z,sample_B[corres[i].b].x,sample_B[corres[i].b].y,sample_B[corres[i].b].z);
+			endShape();
+		}
+	}
+	
+	
+	
 
 	public int find_closest_projection(pt p, pt[] sample) {
 		float distance = d(sample[0], p), temp;
@@ -387,8 +408,8 @@ public class swirl extends PApplet {
 
 		orientation = U(A(U(bezierTangent(control_point_A, 0)), U(bezierTangent(control_point_B, 0))));
 
-		for (int i = 1; i < 99; i++) {
-			medial_axis[i] = P(medial_axis[i - 1], 7, orientation);
+		for (int i = 1; i < 100; i++) {
+			medial_axis[i] = P(medial_axis[i - 1], 7.2f, orientation);
 			
 			for (int ii = 0; ii < 3; ii++) {
 				int temp_A = find_closest_projection(medial_axis[i], sample_A);
@@ -563,6 +584,8 @@ public class swirl extends PApplet {
 		if (keyPressed && key == 'z')
 			P.movePicked(ToK(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
 
+		
+		
 		control_point_A[0] = P.G[0];
 		control_point_A[3] = P.G[3];
 		control_point_A[1] = P.G[1];
@@ -572,9 +595,27 @@ public class swirl extends PApplet {
 		control_point_B[3] = P.G[3];
 		control_point_B[1] = P.G[4];
 		control_point_B[2] = P.G[5];
+		
 		calculate_sample();
+		
+		ABintersect[0] = control_point_A[0];
+		ABintersect[100] = control_point_A[3];
+
+		medial_axis[0] = control_point_A[0];
+		medial_axis[100] = control_point_A[3];
+
+		intermediate[0] = control_point_A[0];
+		intermediate[100] = control_point_A[3];
+		
+		corres[0]=new correspondence(0,0);
+		corres[100]=new correspondence(1000,1000);
+
 		compute_medial_axis();
-		find_normal();
+		find_normal(sample_A,normal_A,1000);
+		find_normal(sample_B,normal_B,1000);
+		
+	
+	
 		if (keyPressed && key == 'X')
 			P.moveAll(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
 		if (keyPressed && key == 'Z')
@@ -1512,7 +1553,7 @@ public class swirl extends PApplet {
 	public void showSphere(pt P, float r) {
 		pushMatrix();
 		translate(P.x, P.y, P.z);
-		sphereDetail(5);
+		sphereDetail(3);
 		sphere(r);
 		popMatrix();
 	}
