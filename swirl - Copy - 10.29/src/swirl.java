@@ -294,7 +294,7 @@ public class swirl extends PApplet {
 		float parameter;
 		vec temp1=U(V(sample[0],sample[1]));//tangent
 		vec X1=new vec(1,0,0);//find a random vector to form a plane
-		if( abs(dot(X1,temp1))>0.9 )//check parallel
+		if( abs(dot(X1,temp1))>0.999 )//check parallel
 			X1=V(0,1,0);
 		vec J1=U( N(X1,temp1) );//get normal vector to tangent
 		sample_normal[0]=J1;
@@ -477,7 +477,7 @@ public class swirl extends PApplet {
 				int temp_B = find_closest_projection(medial_axis[i], sample_B);
 
 				
-				//判断是否平行
+				//see whether is parallel
 				t1 = U(bezierTangent(control_point_A, ((float) temp_A) / 1000));
 				t2 = U(bezierTangent(control_point_B, ((float) temp_B) / 1000));
 
@@ -488,7 +488,7 @@ public class swirl extends PApplet {
 				}
 				
 				
-				// get modified guess 拖拽时需要重新取样，重新定义曲线
+				// get modified guess
 				vec normA = V(medial_axis[i], sample_A[temp_A]);
 				vec normB = V(medial_axis[i], sample_B[temp_B]);
 
@@ -607,7 +607,7 @@ public class swirl extends PApplet {
 	}
 
 	public void mouseWheel(MouseEvent event) {
-		dz += event.getAmount();
+		dz += event.getAmount() * 10;
 		change = true;
 	}
 
