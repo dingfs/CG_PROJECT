@@ -157,7 +157,7 @@ public class swirl extends PApplet {
 		showSphere(control_point_A[1], 10);
 		showSphere(control_point_A[2], 10);
 		showSphere(control_point_A[3], 10);
-		stroke(0, 0, 255);
+		//stroke(0, 0, 255);
 		strokeWeight(5);
 		noFill();
 		bezier(control_point_A);
@@ -167,7 +167,7 @@ public class swirl extends PApplet {
 		showSphere(control_point_B[1], 10);
 		showSphere(control_point_B[2], 10);
 		showSphere(control_point_B[3], 10);
-		stroke(0, 255, 0);
+		//stroke(0, 255, 0);
 		strokeWeight(5);
 		bezier(control_point_B);
 
@@ -179,30 +179,21 @@ public class swirl extends PApplet {
 		
 		System.out.println(medial_axis_size);
 
-		
-		/*
-		stroke(255, 0, 255);
-		strokeWeight(5);
-		for (int i = 0; i < 1001; i++) {
-			showSphere(ABintersect[i], 7);
-		}
-		 */
-		
+
 		draw_curve_quad(8,8);
-		draw_net();
-		
+		draw_net();		
 		
 		if(show_inflation != 0){
 			find_normal_inflation(pt_inflation,normal_inflation,medial_axis_size-1);
 			draw_quad_inflation(8);		
 		}
-
 		
 	
 		for(int i=1;i<medial_axis_size;i++)
 		{
 			intermediate[i]=L(L(sample_A[corres[i].a],t,medial_axis[i]),t,L(medial_axis[i],t,sample_B[corres[i].b]));
 		}		
+		
 		
 		if(animating) 
 		{
@@ -369,6 +360,7 @@ public class swirl extends PApplet {
 		}
 	}
 	
+	//display input curves as tubes using sample points of curves and parallel transport norms
 	public void draw_curve_quad(int r,int s)
 	{
 		int j=0;
@@ -411,7 +403,8 @@ public class swirl extends PApplet {
 				}
 				else{
 					stroke(0,0,0);
-					fill(0,0,0);}
+					fill(0,0,0);
+					}
 				beginShape(QUAD);
 				v(P(P(sample_B[corres[i].b],r*cos(t),J1),r*sin(t),K1)); 
 				v(P(P(sample_B[corres[i+1].b],r*cos(t),J1),r*sin(t),K1));
@@ -428,7 +421,7 @@ public class swirl extends PApplet {
 		}
 	}	
 	
-	
+	// draw ball morph between two curves
 	public void draw_quad(int r,int s)
 	{
 		int j=0;
@@ -442,18 +435,21 @@ public class swirl extends PApplet {
 			{
 				if(j%2==0)
 				{
-					stroke(0, 0, 255);
-					//fill(0,0,255);
+					noStroke();
+					fill(30,255,0);
 				}
 				else
-					stroke(0,0,0);
+				{
+					noStroke();
+					fill(255,30,0);
+				}
+
 				beginShape(QUAD);
 				v(P(P(intermediate[i],r*cos(t),J),r*sin(t),K)); 
 				v(P(P(intermediate[i+1],r*cos(t),J),r*sin(t),K));
 				
 				v(P(P(intermediate[i+1],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
 				v(P(P(intermediate[i],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
-
 
 				endShape();
 			}
@@ -476,15 +472,22 @@ public class swirl extends PApplet {
 			//calculate dot of line between correspongding points and normal, in order to figure out rotation angle
 			float my_temp = asin(dot(line_correspts,J));
 			
-			for (float t= -TWO_PI/s - my_temp; t <TWO_PI*(show_inflation/2f) - TWO_PI/s - my_temp; t+=TWO_PI/s,j++) //show_inflation control what part to show
+			for (float t= -TWO_PI/s - my_temp; t <TWO_PI*show_inflation/2 - TWO_PI/s - my_temp; t+=TWO_PI/s,j++)
+				//show_inflation control what part to show
 			{
 				if(j%2==0)
-				{
-					stroke(0, 0, 255);
-					//fill(0,0,255);
+				{	
+					strokeWeight(2);
+					stroke(0,0,0);
+					noFill();
+
 				}
 				else
-					stroke(0,0,0);
+				{
+					strokeWeight(2);
+					noFill();
+					stroke(180,180,180);
+				}
 				beginShape(QUAD);
 				v(P(P(pt_inflation[i],corres[i].r_inflation*cos(t),J),corres[i].r_inflation*sin(t),K)); 
 				v(P(P(pt_inflation[i+1],corres[i+1].r_inflation*cos(t),J),corres[i+1].r_inflation*sin(t),K));
@@ -499,14 +502,14 @@ public class swirl extends PApplet {
 		}
 	}
 	
-
+	// use quadratic Bezier curve to simulate the transversal arcs
 	public void draw_net()
 	{
 		for(int i=0;i<medial_axis_size;i++)
 		{
 			noFill();
-			strokeWeight(4);
-			stroke(255,255,0);
+			strokeWeight(2);
+			stroke(220,220,220);
 			for(float t=0;t<1f;t+=0.01f)
 			{
 				pt a=L(L(sample_A[corres[i].a],t,medial_axis[i]),t,L(medial_axis[i],t,sample_B[corres[i].b]));
@@ -516,11 +519,10 @@ public class swirl extends PApplet {
 		}
 	}
 	
+	
 	/*
 	public void draw_medial_tube()
-	{
-		
-		
+	{	
 		
 		for(int i=0;i<100;i++)
 		{
@@ -556,15 +558,12 @@ public class swirl extends PApplet {
 				v(P(P(sample[i+1],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
 
 				endShape();
-			}
-					
-			
+			}		
 		}
-	}	
-	*/
+	}*/
 	
 	
-
+	// find closest point
 	public int find_closest_projection(pt p, pt[] sample) {
 		float distance = d(sample[0], p), temp;
 		int index = 0;
