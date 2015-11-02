@@ -53,25 +53,28 @@ public class swirl extends PApplet {
 	pt[] sample_A = new pt[1001];
 	pt[] sample_B = new pt[1001];
 	
-	pt[] medial_axis = new pt[101];
-	correspondence[] corres =new correspondence[101];
-	pt[] pt_inflation=new pt[101];
-	pt[] intermediate=new pt[101];
+	pt[] medial_axis = new pt[1001];
+	correspondence[] corres =new correspondence[1001];
+	pt[] pt_inflation=new pt[1001];
+	pt[] intermediate=new pt[1001];
 	
-	pt[] ABintersect = new pt[101];
+	pt[] ABintersect = new pt[1001];
 	vec orientation;
 	
 	vec[] normal_A=new vec[1000];
 	vec[] normal_B=new vec[1000];
-	vec[] normal_intermediate=new vec[100];
-	vec[] normal_inflation=new vec[100];
+	vec[] normal_intermediate=new vec[1000];
+	vec[] normal_inflation=new vec[1000];
 	
-	int medial_axis_size=101;
+	int medial_axis_size=1001;
 
 	public void setup() {
-		myFace = loadImage("data/pic.jpg"); // load image from file pic.jpg in
+		myFace = loadImage("data/Shao.jpg"); // load image from file pic.jpg in
 											// folder data *** replace that file
 											// with your pic of your own face
+		myFace2=loadImage("data/wang.jpg");
+		
+		
 		textureMode(NORMAL);
 		// p3D means that we will do 3D graphics
 		P.declare();
@@ -96,20 +99,20 @@ public class swirl extends PApplet {
 
 		// test ABintersect
 		ABintersect[0] = control_point_A[0];
-		ABintersect[100] = control_point_A[3];
+		ABintersect[1000] = control_point_A[3];
 
 		medial_axis[0] = control_point_A[0];
-		medial_axis[100] = control_point_A[3];
+		medial_axis[1000] = control_point_A[3];
 		
 		
 		intermediate[0] = control_point_A[0];
-		intermediate[100] = control_point_A[3];
+		intermediate[1000] = control_point_A[3];
 		
 		pt_inflation[0] = control_point_A[0];
-		pt_inflation[100] = control_point_A[3];
+		pt_inflation[1000] = control_point_A[3];
 		
 		corres[0]=new correspondence(0,0);
-		corres[100]=new correspondence(1000,1000);
+		corres[1000]=new correspondence(1000,1000);
 
 		compute_medial_axis();
 		find_normal(sample_A,normal_A,1000);
@@ -177,9 +180,6 @@ public class swirl extends PApplet {
 		for (int i = 0; i < medial_axis_size; i++) {
 			showSphere(medial_axis[i], 4);
 		}	
-		
-		//System.out.println(medial_axis_size);
-
 
 		draw_curve_quad(8,6);
 		draw_net();		
@@ -590,9 +590,9 @@ public class swirl extends PApplet {
 
 		orientation = U(A(U(bezierTangent(control_point_A, 0)), U(bezierTangent(control_point_B, 0))));
 
-		for (int i = 1; i < 100; i++) 
+		for (int i = 1; i < 1000; i++) 
 		{
-			medial_axis[i] = P(medial_axis[i - 1], 7.2f, orientation);
+			medial_axis[i] = P(medial_axis[i - 1], 7f, orientation);
 			
 			for (int ii = 0; ii < 3; ii++) // three rounds of guess to obtain better location of next point
 			{
@@ -655,7 +655,7 @@ public class swirl extends PApplet {
 			
 			// judge whether MA reaches the end point of curve
 			// points exceed end point can cause unpredictable errors
-			if(  Float.isNaN(d(medial_axis[i],medial_axis[100]))    )
+			if(  Float.isNaN(d(medial_axis[i],medial_axis[1000]))    )
 			{
 				medial_axis_size=i;
 				break;
@@ -813,22 +813,22 @@ public class swirl extends PApplet {
 		
 		
 		
-		if (keyPressed && key == 'X')
-			P.moveAll(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
-		if (keyPressed && key == 'Z')
-			P.moveAll(ToK(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
-		if (keyPressed && key == 'f') { // move focus point on plane
-			if (center)
-				F.sub(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
-			else
-				F.add(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
-		}
-		if (keyPressed && key == 'F') { // move focus point vertically
+		//if (keyPressed && key == 'X')
+			//P.moveAll(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
+		//if (keyPressed && key == 'Z')
+			//P.moveAll(ToK(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
+		//if (keyPressed && key == 'f') { // move focus point on plane
+			//if (center)
+				//F.sub(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
+			//else
+				//F.add(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
+		//}
+		/*if (keyPressed && key == 'F') { // move focus point vertically
 			if (center)
 				F.sub(ToK(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
 			else
 				F.add(ToK(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
-		}
+		}*/
 	}
 
 	// **** Header, footer, help text on canvas
@@ -836,7 +836,8 @@ public class swirl extends PApplet {
 		scribeHeader(title, 0);
 		scribeHeaderRight(name);
 		fill(white);
-		image(myFace, width - myFace.width / 2, 25, myFace.width / 2, myFace.height / 2);
+		image(myFace2, width - myFace.width / 4, 25, myFace.width / 4, myFace.height / 4);
+		image(myFace,width - myFace.width / 4, 25+myFace.height / 4, myFace.width / 4, myFace.height / 4);
 	}
 
 	public void displayFooter() { // Displays help text at the bottom
@@ -845,7 +846,7 @@ public class swirl extends PApplet {
 	}
 
 	String title = "6491 P3 2015: Curve average in 3D", name = "   Shao         Wang",
-			menu = "space:rotate, s/wheel:closer, f/F:refocus, a:anim, A:show (half) inflation, #:quit",
+			menu = "space:rotate, s/wheel:closer, a:anim, A:show (half) inflation, AA: show whole inflation #:quit",
 			guide = "CURVES x/z:select&edit"; // user's
 																									// guide
 	/********
@@ -2394,7 +2395,8 @@ public class swirl extends PApplet {
 	Boolean filming = false, change = false;
 	PImage myFace; // picture of author's face, should be: data/pic.jpg in
 					// sketch folder
-
+	PImage myFace2;
+	
 	public void snapPicture() {
 		saveFrame("PICTURES/P" + nf(pictureCounter++, 3) + ".jpg");
 	}
