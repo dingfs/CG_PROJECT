@@ -152,35 +152,36 @@ public class swirl extends PApplet {
 									// basis vectors (see bottom of pv3D): used
 									// for dragging in viewer's frame
 
-		stroke(0, 0, 255);
-		showSphere(control_point_A[0], 10);
-		showSphere(control_point_A[1], 10);
-		showSphere(control_point_A[2], 10);
-		showSphere(control_point_A[3], 10);
+		stroke(255, 0, 0);
+		noFill();
+		showSphere(control_point_A[0], 15);
+		showSphere(control_point_A[1], 15);
+		showSphere(control_point_A[2], 15);
+		showSphere(control_point_A[3], 15);
 		//stroke(0, 0, 255);
-		strokeWeight(5);
+		strokeWeight(3);
 		noFill();
 		bezier(control_point_A);
 
 		stroke(0, 255, 0);
-		showSphere(control_point_B[0], 10);
-		showSphere(control_point_B[1], 10);
-		showSphere(control_point_B[2], 10);
-		showSphere(control_point_B[3], 10);
+		showSphere(control_point_B[0], 15);
+		showSphere(control_point_B[1], 15);
+		showSphere(control_point_B[2], 15);
+		showSphere(control_point_B[3], 15);
 		//stroke(0, 255, 0);
-		strokeWeight(5);
+		strokeWeight(3);
 		bezier(control_point_B);
 
-		stroke(255, 0, 0);
-		strokeWeight(5);
+		stroke(0, 0, 255);
+		strokeWeight(7);
 		for (int i = 0; i < medial_axis_size; i++) {
 			showSphere(medial_axis[i], 4);
 		}	
 		
-		System.out.println(medial_axis_size);
+		//System.out.println(medial_axis_size);
 
 
-		draw_curve_quad(8,8);
+		draw_curve_quad(8,6);
 		draw_net();		
 		
 		if(show_inflation != 0){
@@ -379,12 +380,14 @@ public class swirl extends PApplet {
 			{
 				if(j%2==0)
 				{					
-						stroke(255, 0, 0);
-						fill(255, 0, 0);
+						//stroke(255, 0, 0);
+					noStroke();
+					fill(255, 0, 0);
 				}
 				else
 					{
-					stroke(0,0,0);
+					noStroke();
+					//stroke(0,0,0);
 					fill(0, 0, 0);
 					}
 				beginShape(QUAD);
@@ -397,12 +400,13 @@ public class swirl extends PApplet {
 				endShape();
 				
 				if(j%2==0)
-				{					
-						stroke(0, 255, 0);
+				{				noStroke();	
+						//stroke(0, 255, 0);
 						fill(0,255,0);
 				}
 				else{
-					stroke(0,0,0);
+					noStroke();
+					//stroke(0,0,0);
 					fill(0,0,0);
 					}
 				beginShape(QUAD);
@@ -436,12 +440,12 @@ public class swirl extends PApplet {
 				if(j%2==0)
 				{
 					noStroke();
-					fill(30,255,0);
+					fill(0,0,255);
 				}
 				else
 				{
 					noStroke();
-					fill(255,30,0);
+					fill(0,0,0);
 				}
 
 				beginShape(QUAD);
@@ -509,7 +513,7 @@ public class swirl extends PApplet {
 		{
 			noFill();
 			strokeWeight(2);
-			stroke(220,220,220);
+			stroke(255,255,0);
 			for(float t=0;t<1f;t+=0.01f)
 			{
 				pt a=L(L(sample_A[corres[i].a],t,medial_axis[i]),t,L(medial_axis[i],t,sample_B[corres[i].b]));
