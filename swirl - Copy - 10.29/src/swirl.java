@@ -34,6 +34,8 @@ public class swirl extends PApplet {
 	Boolean twistFree = false, animating = false, tracking = false, center = true, gouraud = true,
 			showControlPolygon = false, showNormals = false;
 	float t = 0f, s = 0;
+	
+	
 	boolean viewpoint = false;
 	pt Viewer = P();
 	pt F = P(50, -100, -100); // focus point: the camera is looking at it (moved when
@@ -59,6 +61,8 @@ public class swirl extends PApplet {
 	vec[] normal_A=new vec[1000];
 	vec[] normal_B=new vec[1000];
 	vec[] normal_intermediate=new vec[100];
+	
+	int medial_axis_size=101;
 
 	public void setup() {
 		myFace = loadImage("data/pic.jpg"); // load image from file pic.jpg in
@@ -103,7 +107,6 @@ public class swirl extends PApplet {
 		compute_medial_axis();
 		find_normal(sample_A,normal_A,1000);
 		find_normal(sample_B,normal_B,1000);
-		
 		
 		
 	
@@ -166,9 +169,12 @@ public class swirl extends PApplet {
 
 		stroke(255, 0, 0);
 		strokeWeight(5);
-		for (int i = 0; i < 101; i++) {
+		for (int i = 0; i < medial_axis_size; i++) {
 			showSphere(medial_axis[i], 4);
 		}	
+		
+		System.out.println(medial_axis_size);
+
 		
 		/*
 		stroke(255, 0, 255);
@@ -178,23 +184,20 @@ public class swirl extends PApplet {
 		}
 */
 		
-		draw_quad( sample_A, normal_A,2,8,1000,1);
-		draw_quad( sample_B, normal_B,2,8,1000,2);
+		draw_curve_quad(8,8);
 		draw_net();
 	
-		for(int i=1;i<100;i++)
+		for(int i=1;i<medial_axis_size;i++)
 		{
-			intermediate[i]=L(sample_A[corres[i].a],t,sample_B[corres[i].b]);
-			//stroke(255, 0, 255);
-			//showSphere(intermediate[i],4);
+			intermediate[i]=L(L(sample_A[corres[i].a],t,medial_axis[i]),t,L(medial_axis[i],t,sample_B[corres[i].b]));
 		}		
 		
 		if(animating) 
 		{
-			find_normal(intermediate,normal_intermediate,100);
-			draw_quad( intermediate, normal_intermediate,4,8,100,3);
+			find_normal(intermediate,normal_intermediate,medial_axis_size-1);
+			draw_quad(8,8);
 			
-			t+=0.02f;
+			t+=0.01f;
 			if(t>1)
 				t=0;
 		}
@@ -332,40 +335,88 @@ public class swirl extends PApplet {
 		}
 	}
 	
-	
-	public void draw_quad(pt[] sample,vec[] normal_sample,int r,int s,int size,int color)
+	public void draw_curve_quad(int r,int s)
 	{
 		int j=0;
-		for(int i=0;i<size;i+=1)
+		for(int i=0;i<medial_axis_size-1;i+=1)
 		{
+			vec I=U(V(sample_A[corres[i].a],sample_A[corres[i+1].a]));
+			vec J=normal_A[i];
+			vec K=U(N(I,J));
 			
-			vec I=U(V(sample[i],sample[i+1]));
-			vec J=normal_sample[i];
+			vec I1=U(V(sample_B[corres[i].b],sample_B[corres[i+1].b]));
+			vec J1=normal_B[i];
+			vec K1=U(N(I1,J1));
+			
+			
+			for (float t=0; t<TWO_PI; t+=TWO_PI/s,j++) 
+			{
+				if(j%2==0)
+				{					
+						stroke(255, 0, 0);
+				}
+				else
+					stroke(0,0,0);
+				beginShape(QUAD);
+				v(P(P(sample_A[corres[i].a],r*cos(t),J),r*sin(t),K)); 
+				v(P(P(sample_A[corres[i+1].a],r*cos(t),J),r*sin(t),K));
+				
+				v(P(P(sample_A[corres[i].a],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
+				v(P(P(sample_A[corres[i+1].a],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
+				endShape();
+				
+				if(j%2==0)
+				{					
+						stroke(0, 255, 0);
+				}
+				else
+					stroke(0,0,0);
+				beginShape(QUAD);
+				v(P(P(sample_B[corres[i].b],r*cos(t),J1),r*sin(t),K1)); 
+				v(P(P(sample_B[corres[i+1].b],r*cos(t),J1),r*sin(t),K1));
+				
+				v(P(P(sample_B[corres[i].b],r*cos(t-TWO_PI/s),J1),r*sin(t-TWO_PI/s),K1)); 
+				v(P(P(sample_B[corres[i+1].b],r*cos(t-TWO_PI/s),J1),r*sin(t-TWO_PI/s),K1));
+				endShape();
+	
+			}
+			if(i%((medial_axis_size-1)/10)!=((medial_axis_size-1)/20))
+				j++;
+
+		}
+	}
+	
+	
+	
+	
+	public void draw_quad(int r,int s)
+	{
+		int j=0;
+		for(int i=0;i<medial_axis_size-1;i+=1)
+		{
+			vec I=U(V(intermediate[i],intermediate[i+1]));
+			vec J=normal_intermediate[i];
 			vec K=U(N(I,J));
 			
 			for (float t=0; t<TWO_PI; t+=TWO_PI/s,j++) 
 			{
 				if(j%2==0)
 				{
-					if(color==1)
-						stroke(255, 0, 0);
-					else if(color==2)
 						stroke(0, 0, 255);
-					else
-						stroke(0, 255, 0);
+					
 				}
 				else
 					stroke(0,0,0);
 				beginShape(QUAD);
-				v(P(P(sample[i],r*cos(t),J),r*sin(t),K)); 
-				v(P(P(sample[i+1],r*cos(t),J),r*sin(t),K));
+				v(P(P(intermediate[i],r*cos(t),J),r*sin(t),K)); 
+				v(P(P(intermediate[i+1],r*cos(t),J),r*sin(t),K));
 				
-				v(P(P(sample[i],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
-				v(P(P(sample[i+1],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
+				v(P(P(intermediate[i],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
+				v(P(P(intermediate[i+1],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
 
 				endShape();
 			}
-			if(i%20!=10)
+			if(i%((medial_axis_size-1)/10)!=((medial_axis_size-1)/20))
 				j++;
 		}
 	}
@@ -373,15 +424,17 @@ public class swirl extends PApplet {
 
 	public void draw_net()
 	{
-		for(int i=0;i<101;i++)
+		for(int i=0;i<medial_axis_size;i++)
 		{
 			noFill();
 			strokeWeight(4);
 			stroke(255,255,0);
-			beginShape();
-			vertex(sample_A[corres[i].a].x,sample_A[corres[i].a].y,sample_A[corres[i].a].z );
-			quadraticVertex(medial_axis[i].x,medial_axis[i].y,medial_axis[i].z,sample_B[corres[i].b].x,sample_B[corres[i].b].y,sample_B[corres[i].b].z);
-			endShape();
+			for(float t=0;t<1f;t+=0.01f)
+			{
+				pt a=L(L(sample_A[corres[i].a],t,medial_axis[i]),t,L(medial_axis[i],t,sample_B[corres[i].b]));
+				pt b=L(L(sample_A[corres[i].a],t+0.01f,medial_axis[i]),t+0.01f,L(medial_axis[i],t+0.01f,sample_B[corres[i].b]));
+				line(a.x,a.y,a.z,b.x,b.y,b.z);
+			}
 		}
 	}
 	
@@ -469,10 +522,12 @@ public class swirl extends PApplet {
 
 		orientation = U(A(U(bezierTangent(control_point_A, 0)), U(bezierTangent(control_point_B, 0))));
 
-		for (int i = 1; i < 100; i++) {
+		for (int i = 1; i < 100; i++) 
+		{
 			medial_axis[i] = P(medial_axis[i - 1], 7.2f, orientation);
 			
-			for (int ii = 0; ii < 3; ii++) {
+			for (int ii = 0; ii < 3; ii++) 
+			{
 				int temp_A = find_closest_projection(medial_axis[i], sample_A);
 				int temp_B = find_closest_projection(medial_axis[i], sample_B);
 
@@ -528,9 +583,15 @@ public class swirl extends PApplet {
 			// medial_axis[i] = P(sample_A[temp_A], sample_B[temp_B]);
 
 			orientation = U(A(t1, t2));
+			
+			
+			if(  Float.isNaN(d(medial_axis[i],medial_axis[100]))    )
+			{
+				medial_axis_size=i;
+				break;
+			}
 
 		}
-
 	}
 
 	public void penFill(int c, float w) {
