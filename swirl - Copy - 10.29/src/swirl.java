@@ -318,9 +318,12 @@ public class swirl extends PApplet {
 		for(int i=0;i<size;i++)
 		{
 			if(i%100<=50)
-				stroke(0, 255, 255);
+				{stroke(0, 255, 255);
+				fill(0,255,255);}
 			else
-				stroke(255,255,0);
+				{stroke(255,255,0);
+				fill(255,255,0);
+				}
 
 			vec I=U(V(sample[i],sample[i+1]));
 			vec J=normal_sample[i];
@@ -354,9 +357,13 @@ public class swirl extends PApplet {
 				if(j%2==0)
 				{					
 						stroke(255, 0, 0);
+						fill(255, 0, 0);
 				}
 				else
+					{
 					stroke(0,0,0);
+					fill(0, 0, 0);
+					}
 				beginShape(QUAD);
 				v(P(P(sample_A[corres[i].a],r*cos(t),J),r*sin(t),K)); 
 				v(P(P(sample_A[corres[i+1].a],r*cos(t),J),r*sin(t),K));
@@ -368,9 +375,11 @@ public class swirl extends PApplet {
 				if(j%2==0)
 				{					
 						stroke(0, 255, 0);
+						fill(0,255,0);
 				}
-				else
+				else{
 					stroke(0,0,0);
+					fill(0,0,0);}
 				beginShape(QUAD);
 				v(P(P(sample_B[corres[i].b],r*cos(t),J1),r*sin(t),K1)); 
 				v(P(P(sample_B[corres[i+1].b],r*cos(t),J1),r*sin(t),K1));
@@ -402,8 +411,8 @@ public class swirl extends PApplet {
 			{
 				if(j%2==0)
 				{
-						stroke(0, 0, 255);
-					
+					stroke(0, 0, 255);
+					//fill(0,0,255);
 				}
 				else
 					stroke(0,0,0);
