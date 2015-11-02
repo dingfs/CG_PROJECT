@@ -22,7 +22,9 @@ public class swirl extends PApplet {
 	{
 		public int a;
 		public int b;
-		public correspondence(int x,int y){a=x;b=y;}		
+		public correspondence(int x,int y){a=x;b=y;}
+		//pt pt_inflation;
+		float r_inflation;
 	};
 	
 	// Skate dancer on moving terrain
@@ -53,6 +55,7 @@ public class swirl extends PApplet {
 	
 	pt[] medial_axis = new pt[101];
 	correspondence[] corres =new correspondence[101];
+	pt[] pt_inflation=new pt[101];
 	pt[] intermediate=new pt[101];
 	
 	pt[] ABintersect = new pt[101];
@@ -61,6 +64,7 @@ public class swirl extends PApplet {
 	vec[] normal_A=new vec[1000];
 	vec[] normal_B=new vec[1000];
 	vec[] normal_intermediate=new vec[100];
+	vec[] normal_inflation=new vec[100];
 	
 	int medial_axis_size=101;
 
@@ -100,6 +104,9 @@ public class swirl extends PApplet {
 		
 		intermediate[0] = control_point_A[0];
 		intermediate[100] = control_point_A[3];
+		
+		pt_inflation[0] = control_point_A[0];
+		pt_inflation[100] = control_point_A[3];
 		
 		corres[0]=new correspondence(0,0);
 		corres[100]=new correspondence(1000,1000);
@@ -184,23 +191,30 @@ public class swirl extends PApplet {
 		}
 */
 		
-		draw_curve_quad(8,8);
-		draw_net();
+		//draw_curve_quad(8,8);
+		//draw_net();
+		
+		
+		if(animating){
+			find_normal(pt_inflation,normal_inflation,medial_axis_size-1);
+			draw_quad_inflation(8);		
+		}
+		
 	
 		for(int i=1;i<medial_axis_size;i++)
 		{
 			intermediate[i]=L(L(sample_A[corres[i].a],t,medial_axis[i]),t,L(medial_axis[i],t,sample_B[corres[i].b]));
 		}		
 		
-		if(animating) 
+		/*if(animating) 
 		{
 			find_normal(intermediate,normal_intermediate,medial_axis_size-1);
-			draw_quad(8,8);
+			draw_quad(8,8);			
 			
 			t+=0.01f;
 			if(t>1)
 				t=0;
-		}
+		}*/
 
 		pp = P.idOfVertexWithClosestScreenProjectionTo(Mouse()); 
 		
@@ -430,6 +444,39 @@ public class swirl extends PApplet {
 		}
 	}
 
+	
+	public void draw_quad_inflation(int s)
+	{
+		int j=0;
+		for(int i=0;i<medial_axis_size-1;i+=1)
+		{
+			vec I=U(V(pt_inflation[i],pt_inflation[i+1]));
+			vec J=normal_inflation[i];
+			vec K=U(N(I,J));
+			
+			for (float t=0; t<TWO_PI; t+=TWO_PI/s,j++) 
+			{
+				if(j%2==0)
+				{
+					stroke(0, 0, 255);
+					//fill(0,0,255);
+				}
+				else
+					stroke(0,0,0);
+				beginShape(QUAD);
+				v(P(P(pt_inflation[i],corres[i].r_inflation*cos(t),J),corres[i].r_inflation*sin(t),K)); 
+				v(P(P(pt_inflation[i+1],corres[i].r_inflation*cos(t),J),corres[i].r_inflation*sin(t),K));
+				
+				v(P(P(pt_inflation[i],corres[i].r_inflation*cos(t-TWO_PI/s),J),corres[i].r_inflation*sin(t-TWO_PI/s),K)); 
+				v(P(P(pt_inflation[i+1],corres[i].r_inflation*cos(t-TWO_PI/s),J),corres[i].r_inflation*sin(t-TWO_PI/s),K));
+
+				endShape();
+			}
+			if(i%((medial_axis_size-1)/10)!=((medial_axis_size-1)/20))
+				j++;
+		}
+	}
+	
 
 	public void draw_net()
 	{
@@ -582,8 +629,9 @@ public class swirl extends PApplet {
 						V(dot(V(ABintersect[i], medial_axis[i]), new_guessLine), new_guessLine));
 				
 				
-				corres[i]=new correspondence(temp_A,temp_B);
-
+				corres[i] = new correspondence(temp_A,temp_B);
+				pt_inflation[i] = P(sample_A[temp_A],sample_B[temp_B]);
+				corres[i].r_inflation = Math.max((d(sample_A[temp_A],sample_B[temp_B]) / 2) - 4, 0);
 			}
 			
 			
