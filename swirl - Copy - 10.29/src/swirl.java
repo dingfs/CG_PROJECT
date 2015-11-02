@@ -23,7 +23,6 @@ public class swirl extends PApplet {
 		public int a;
 		public int b;
 		public correspondence(int x,int y){a=x;b=y;}
-		//pt pt_inflation;
 		float r_inflation;
 	};
 	
@@ -35,6 +34,7 @@ public class swirl extends PApplet {
 							// mouse
 	Boolean twistFree = false, animating = false, tracking = false, center = true, gouraud = true,
 			showControlPolygon = false, showNormals = false;
+	int show_inflation = 0;
 	float t = 0f, s = 0;
 	
 	
@@ -115,9 +115,6 @@ public class swirl extends PApplet {
 		find_normal(sample_A,normal_A,1000);
 		find_normal(sample_B,normal_B,1000);
 		
-		
-	
-		
 	}
 
 	public void draw() {
@@ -189,16 +186,17 @@ public class swirl extends PApplet {
 		for (int i = 0; i < 1001; i++) {
 			showSphere(ABintersect[i], 7);
 		}
-*/
+		 */
 		
-		//draw_curve_quad(8,8);
-		//draw_net();
+		draw_curve_quad(8,8);
+		draw_net();
 		
 		
-		if(animating){
+		if(show_inflation != 0){
 			find_normal_inflation(pt_inflation,normal_inflation,medial_axis_size-1);
 			draw_quad_inflation(8);		
 		}
+
 		
 	
 		for(int i=1;i<medial_axis_size;i++)
@@ -206,7 +204,7 @@ public class swirl extends PApplet {
 			intermediate[i]=L(L(sample_A[corres[i].a],t,medial_axis[i]),t,L(medial_axis[i],t,sample_B[corres[i].b]));
 		}		
 		
-		/*if(animating) 
+		if(animating) 
 		{
 			find_normal(intermediate,normal_intermediate,medial_axis_size-1);
 			draw_quad(8,8);			
@@ -214,7 +212,7 @@ public class swirl extends PApplet {
 			t+=0.01f;
 			if(t>1)
 				t=0;
-		}*/
+		}
 
 		pp = P.idOfVertexWithClosestScreenProjectionTo(Mouse()); 
 		
@@ -428,9 +426,7 @@ public class swirl extends PApplet {
 				j++;
 
 		}
-	}
-	
-	
+	}	
 	
 	
 	public void draw_quad(int r,int s)
@@ -480,7 +476,7 @@ public class swirl extends PApplet {
 			//calculate dot of line between correspongding points and normal, in order to figure out rotation angle
 			float my_temp = asin(dot(line_correspts,J));
 			
-			for (float t= -TWO_PI/s - my_temp; t <TWO_PI/2 - TWO_PI/s - my_temp; t+=TWO_PI/s,j++) 
+			for (float t= -TWO_PI/s - my_temp; t <TWO_PI*(show_inflation/2f) - TWO_PI/s - my_temp; t+=TWO_PI/s,j++) //show_inflation control what part to show
 			{
 				if(j%2==0)
 				{
@@ -526,8 +522,6 @@ public class swirl extends PApplet {
 		
 		
 		
-		
-		
 		for(int i=0;i<100;i++)
 		{
 			float radius_1=d( sample_A[corres[i].a],sample_B[corres[i].b]    )/2;
@@ -563,17 +557,11 @@ public class swirl extends PApplet {
 
 				endShape();
 			}
-			
-				
-			
-			
-			
+					
 			
 		}
-	}
-	
+	}	
 	*/
-	
 	
 	
 
@@ -603,7 +591,7 @@ public class swirl extends PApplet {
 		{
 			medial_axis[i] = P(medial_axis[i - 1], 7.2f, orientation);
 			
-			for (int ii = 0; ii < 3; ii++) 
+			for (int ii = 0; ii < 3; ii++) // three rounds of guess to obtain better location of next point
 			{
 				int temp_A = find_closest_projection(medial_axis[i], sample_A);
 				int temp_B = find_closest_projection(medial_axis[i], sample_B);
@@ -624,7 +612,7 @@ public class swirl extends PApplet {
 				vec normA = V(medial_axis[i], sample_A[temp_A]);
 				vec normB = V(medial_axis[i], sample_B[temp_B]);
 
-				// A intersect planeB
+				// tangent A intersect planeB
 				temp_ptinplane = ((sample_B[temp_B].x - sample_A[temp_A].x) * normB.x
 						+ (sample_B[temp_B].y - sample_A[temp_A].y) * normB.y
 						+ (sample_B[temp_B].z - sample_A[temp_A].z) * normB.z)
@@ -633,7 +621,7 @@ public class swirl extends PApplet {
 				AinBplane = P(sample_A[temp_A].x + t1.x * temp_ptinplane, sample_A[temp_A].y + t1.y * temp_ptinplane,
 						sample_A[temp_A].z + t1.z * temp_ptinplane);
 
-				// B intersect planeA
+				// tangent B intersect planeA
 				temp_ptinplane = ((-sample_B[temp_B].x + sample_A[temp_A].x) * normA.x
 						+ (-sample_B[temp_B].y + sample_A[temp_A].y) * normA.y
 						+ (-sample_B[temp_B].z + sample_A[temp_A].z) * normA.z)
@@ -641,9 +629,11 @@ public class swirl extends PApplet {
 
 				BinAplane = P(sample_B[temp_B].x + t2.x * temp_ptinplane, sample_B[temp_B].y + t2.y * temp_ptinplane,
 						sample_B[temp_B].z + t2.z * temp_ptinplane);
-
+				
+				// average of two intersects + average of two lines between it and tangent points
+				
 				ABintersect[i] = P(AinBplane, BinAplane);
-
+				
 				vec new_guessLine = U(V(V(ABintersect[i], sample_A[temp_A]), V(ABintersect[i], sample_B[temp_B])));
 
 				medial_axis[i] = P(ABintersect[i],
@@ -653,16 +643,15 @@ public class swirl extends PApplet {
 				corres[i] = new correspondence(temp_A,temp_B);
 				pt_inflation[i] = P(sample_A[temp_A],sample_B[temp_B]);
 				corres[i].r_inflation = Math.max((d(sample_A[temp_A],sample_B[temp_B]) / 2) -4 , 0);
-			}
-			
-			
-			
+			}			
+						
 			// just media axis, not enough
 			// medial_axis[i] = P(sample_A[temp_A], sample_B[temp_B]);
 
-			orientation = U(A(t1, t2));
+			orientation = U(A(t1, t2));			
 			
-			
+			// judge whether MA reaches the end point of curve
+			// points exceed end point can cause unpredictable errors
 			if(  Float.isNaN(d(medial_axis[i],medial_axis[100]))    )
 			{
 				medial_axis_size=i;
@@ -738,6 +727,8 @@ public class swirl extends PApplet {
 			P.loadPts("data/pts");
 		if (key == 'a')
 			animating = !animating; // toggle animation
+		if (key == 'A')
+			show_inflation = (show_inflation + 1)%3; // show whole,half,none of inflation of average curve.
 		if (key == ',')
 			viewpoint = !viewpoint;
 		if (key == '#')
@@ -784,8 +775,8 @@ public class swirl extends PApplet {
 		if (keyPressed && key == 'z')
 			P.movePicked(ToK(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
 
-		
-		
+		// runs every time user moves control point of two curves
+		// re-initialize 
 		control_point_A[0] = P.G[0];
 		control_point_A[3] = P.G[3];
 		control_point_A[1] = P.G[1];
@@ -805,7 +796,10 @@ public class swirl extends PApplet {
 		medial_axis[100] = control_point_A[3];
 
 		intermediate[0] = control_point_A[0];
-		intermediate[100] = control_point_A[3];
+		intermediate[100] = control_point_A[3];		
+		
+		pt_inflation[0] = control_point_A[0];
+		pt_inflation[100] = control_point_A[3];		
 		
 		corres[0]=new correspondence(0,0);
 		corres[100]=new correspondence(1000,1000);
@@ -814,8 +808,8 @@ public class swirl extends PApplet {
 		find_normal(sample_A,normal_A,1000);
 		find_normal(sample_B,normal_B,1000);
 		
-	
-	
+		
+		
 		if (keyPressed && key == 'X')
 			P.moveAll(ToIJ(V((float) (mouseX - pmouseX), (float) (mouseY - pmouseY), 0)));
 		if (keyPressed && key == 'Z')
@@ -847,9 +841,9 @@ public class swirl extends PApplet {
 		scribeFooter(menu, 0);
 	}
 
-	String title = "6491 P2 2015: 3D swirl", name = "Jarek Rossignac",
-			menu = "?:help, !:picture, ~:(start/stop)capture, space:rotate, s/wheel:closer, f/F:refocus, a:anim, #:quit",
-			guide = "CURVES x/z:select&edit, e:exchange, q/p:copy, l/L: load, w/W:write to file"; // user's
+	String title = "6491 P3 2015: Curve average in 3D", name = "   Shao         Wang",
+			menu = "space:rotate, s/wheel:closer, f/F:refocus, a:anim, A:show (half) inflation, #:quit",
+			guide = "CURVES x/z:select&edit"; // user's
 																									// guide
 	/********
 	 * Editor of an Animated Coons Patch
