@@ -196,7 +196,7 @@ public class swirl extends PApplet {
 		
 		
 		if(animating){
-			find_normal(pt_inflation,normal_inflation,medial_axis_size-1);
+			find_normal_inflation(pt_inflation,normal_inflation,medial_axis_size-1);
 			draw_quad_inflation(8);		
 		}
 		
@@ -323,6 +323,25 @@ public class swirl extends PApplet {
 		}
 
 	}
+	
+	
+	public void find_normal_inflation(pt[] sample,vec[] sample_normal,int size)
+	{
+		float parameter;
+		vec temp1=U(V(sample[0],sample[1]));//tangent
+		vec X1=V(sample_A[corres[1].a],sample_B[corres[1].b]);//find a random vector to form a plane
+		if( abs(dot(X1,temp1))>0.999 )//check parallel
+			X1=V(0,1,0);
+		vec J1=U( N(X1,temp1) );//get normal vector to tangent
+		sample_normal[0]=J1;
+	
+		for (int i = 1; i < size; i++) {
+			vec AC=U(V( sample[i-1] , sample[i+1] ));//U
+			parameter=dot(sample_normal[i-1],AC)/dot(AC,AC);//x=(Na.U)/(U.U)
+			sample_normal[i]=U(   M(sample_normal[i-1], V(parameter,AC) )  );//Nb=Na-xU
+		}
+
+	}
 
 	
 	
@@ -382,8 +401,9 @@ public class swirl extends PApplet {
 				v(P(P(sample_A[corres[i].a],r*cos(t),J),r*sin(t),K)); 
 				v(P(P(sample_A[corres[i+1].a],r*cos(t),J),r*sin(t),K));
 				
-				v(P(P(sample_A[corres[i].a],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
 				v(P(P(sample_A[corres[i+1].a],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
+				v(P(P(sample_A[corres[i].a],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
+
 				endShape();
 				
 				if(j%2==0)
@@ -398,8 +418,9 @@ public class swirl extends PApplet {
 				v(P(P(sample_B[corres[i].b],r*cos(t),J1),r*sin(t),K1)); 
 				v(P(P(sample_B[corres[i+1].b],r*cos(t),J1),r*sin(t),K1));
 				
-				v(P(P(sample_B[corres[i].b],r*cos(t-TWO_PI/s),J1),r*sin(t-TWO_PI/s),K1)); 
 				v(P(P(sample_B[corres[i+1].b],r*cos(t-TWO_PI/s),J1),r*sin(t-TWO_PI/s),K1));
+				v(P(P(sample_B[corres[i].b],r*cos(t-TWO_PI/s),J1),r*sin(t-TWO_PI/s),K1)); 
+
 				endShape();
 	
 			}
@@ -434,8 +455,9 @@ public class swirl extends PApplet {
 				v(P(P(intermediate[i],r*cos(t),J),r*sin(t),K)); 
 				v(P(P(intermediate[i+1],r*cos(t),J),r*sin(t),K));
 				
-				v(P(P(intermediate[i],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
 				v(P(P(intermediate[i+1],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K));
+				v(P(P(intermediate[i],r*cos(t-TWO_PI/s),J),r*sin(t-TWO_PI/s),K)); 
+
 
 				endShape();
 			}
@@ -454,7 +476,11 @@ public class swirl extends PApplet {
 			vec J=normal_inflation[i];
 			vec K=U(N(I,J));
 			
-			for (float t=0; t<TWO_PI; t+=TWO_PI/s,j++) 
+			vec line_correspts = U( V(sample_A[corres[i].a],sample_B[corres[i].b]) ); 
+			//calculate dot of line between correspongding points and normal, in order to figure out rotation angle
+			float my_temp = asin(dot(line_correspts,J));
+			
+			for (float t= -TWO_PI/s - my_temp; t <TWO_PI/2 - TWO_PI/s - my_temp; t+=TWO_PI/s,j++) 
 			{
 				if(j%2==0)
 				{
@@ -465,10 +491,10 @@ public class swirl extends PApplet {
 					stroke(0,0,0);
 				beginShape(QUAD);
 				v(P(P(pt_inflation[i],corres[i].r_inflation*cos(t),J),corres[i].r_inflation*sin(t),K)); 
-				v(P(P(pt_inflation[i+1],corres[i].r_inflation*cos(t),J),corres[i].r_inflation*sin(t),K));
+				v(P(P(pt_inflation[i+1],corres[i+1].r_inflation*cos(t),J),corres[i+1].r_inflation*sin(t),K));
 				
+				v(P(P(pt_inflation[i+1],corres[i+1].r_inflation*cos(t-TWO_PI/s),J),corres[i+1].r_inflation*sin(t-TWO_PI/s),K));
 				v(P(P(pt_inflation[i],corres[i].r_inflation*cos(t-TWO_PI/s),J),corres[i].r_inflation*sin(t-TWO_PI/s),K)); 
-				v(P(P(pt_inflation[i+1],corres[i].r_inflation*cos(t-TWO_PI/s),J),corres[i].r_inflation*sin(t-TWO_PI/s),K));
 
 				endShape();
 			}
@@ -538,12 +564,7 @@ public class swirl extends PApplet {
 				endShape();
 			}
 			
-			
-			
-			
-			
-			
-			
+				
 			
 			
 			
@@ -631,7 +652,7 @@ public class swirl extends PApplet {
 				
 				corres[i] = new correspondence(temp_A,temp_B);
 				pt_inflation[i] = P(sample_A[temp_A],sample_B[temp_B]);
-				corres[i].r_inflation = Math.max((d(sample_A[temp_A],sample_B[temp_B]) / 2) - 4, 0);
+				corres[i].r_inflation = Math.max((d(sample_A[temp_A],sample_B[temp_B]) / 2) -4 , 0);
 			}
 			
 			
