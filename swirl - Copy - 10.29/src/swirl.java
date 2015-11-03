@@ -33,7 +33,7 @@ public class swirl extends PApplet {
 	float rx = 0, ry = 0; // view angles manipulated when space pressed but not
 							// mouse
 	Boolean twistFree = false, animating = false, tracking = false, center = true, gouraud = true,
-			showControlPolygon = false, showNormals = false;
+			showControlPolygon = false, showNormals = false, show_Net = false;
 	int show_inflation = 0;
 	float t = 0f, s = 0;
 	
@@ -182,6 +182,8 @@ public class swirl extends PApplet {
 		}	
 
 		draw_curve_quad(8,6);
+		
+		if(show_Net)
 		draw_net();		
 		
 		if(show_inflation != 0){
@@ -734,6 +736,8 @@ public class swirl extends PApplet {
 			show_inflation = (show_inflation + 1)%3; // show whole,half,none of inflation of average curve.
 		if (key == ',')
 			viewpoint = !viewpoint;
+		if (key == 'X')
+			show_Net = !show_Net;
 		if (key == '#')
 			exit();
 		change = true;
@@ -846,7 +850,7 @@ public class swirl extends PApplet {
 	}
 
 	String title = "6491 P3 2015: Curve average in 3D", name = "   Shao         Wang",
-			menu = "space:rotate, s/wheel:closer, a:anim, A:show (half) inflation, AA: show whole inflation #:quit",
+			menu = "space:rotate, s/wheel:closer, a:anim, A:show (half) inflation, AA: show whole inflation, X:show net  #:quit",
 			guide = "CURVES x/z:select&edit"; // user's
 																									// guide
 	/********
